@@ -15,10 +15,23 @@ int main (int argc, char **argv)
 {
     SDL_Init (SDL_INIT_VIDEO);
 
-    SDL_Window *window = SDL_CreateWindow (
-        "clawck", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 176, 24,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE
-            | SDL_WINDOW_ALWAYS_ON_TOP);
+    int x = 0, y = 0;
+
+    int displays = SDL_GetNumVideoDisplays ();
+
+    SDL_Rect displayBounds[10];
+
+    for (int i = 0; i < displays; i++)
+    {
+        SDL_GetDisplayBounds (i, &displayBounds[i]);
+    }
+
+    x = (displayBounds[displays - 1].x + displayBounds[displays - 1].w) - 176;
+
+    Uint32 w_flags
+        = SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_POPUP_MENU;
+
+    SDL_Window *window = SDL_CreateWindow ("clawck", x, y, 176, 24, w_flags);
 
     SDL_Renderer *renderer
         = SDL_CreateRenderer (window, -1, SDL_RENDERER_ACCELERATED);
@@ -37,7 +50,7 @@ int main (int argc, char **argv)
     struct tm *timeinfo;
     char       buffer[80];
 
-    unsigned int current = 0;
+    Uint32 current = 0;
 
     while (run)
     {
@@ -47,11 +60,26 @@ int main (int argc, char **argv)
             {
                 run = false;
             }
-            if (event.type == SDL_KEYDOWN)
+            else if (event.type == SDL_KEYDOWN)
             {
                 switch (event.key.keysym.sym)
                 {
                     case SDLK_q: run = false; break;
+                    case SDLK_LEFT:
+                        x--;
+                        SDL_SetWindowPosition (window, x, y);
+                        break;
+                    case SDLK_RIGHT:
+                        x++;
+                        SDL_SetWindowPosition (window, x, y);
+                        break;
+                }
+            }
+            else if (event.type == SDL_MOUSEBUTTONDOWN)
+            {
+                switch (event.button.button)
+                {
+                    case SDL_BUTTON_MIDDLE: run = false; break;
                 }
             }
         }
